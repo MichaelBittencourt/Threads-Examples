@@ -3,12 +3,12 @@
 #####################Variables########################
 
 #compiler defifition
-GCC=gcc
+CC=gcc
+CCPP=g++
 
 OTIMIZATION=-O2
 DEBUG:=
-LD_FLAGS=-std=c99 \
-		-W \
+LD_FLAGS=-W \
 		-Werror \
 		-Wall \
 		-pedantic \
@@ -18,44 +18,67 @@ DEFINES:=
 
 INCLUDES:=
 
-CC_FLAGS= $(OTIMIZATION) $(DEBUG) $(LD_FLAGS) $(DEFINES) $(INCLUDES)
+FLAGS:=$(OTIMIZATION) $(DEBUG) $(LD_FLAGS) $(DEFINES) $(INCLUDES)
+CC_FLAGS= -std=c99 $(FLAGS)
+CPP_FLAGS= -std=c++11 $(FLAGS)
 ASSEMBLER_FLAGS= -S -fno-asynchronous-unwind-tables
 
 SRC_FOLDER=src
 C_SRC=$(wildcard $(SRC_FOLDER)/*.c)
+CPP_SRC=$(wildcard $(SRC_FOLDER)/*.cpp)
 HEADERS=$(wildcard $(SRC_FOLDER)/*.h)
 
 #OBJ=$(C_SRC:.c=.o)
 OBJ_FOLDER=obj
 OBJ=$(subst .c,.o,$(subst $(SRC_FOLDER), $(OBJ_FOLDER),$(C_SRC)))
+OBJ_CPP=$(subst .cpp,.o,$(subst $(SRC_FOLDER), $(OBJ_FOLDER),$(CPP_SRC)))
 #ASSEMBLY_FILES=$(C_SRC:.c=.s)
 ASSEMBLY_FOLDER=assembly
 ASSEMBLY_FILES=$(subst .c,.s,$(subst $(SRC_FOLDER), $(ASSEMBLY_FOLDER), $(C_SRC)))
 
 BIN=prog
 
+CPP_BIN=progCpp
+
+cpp_thread: objFolder $(CPP_BIN)
+
 all: objFolder $(BIN)
 	@ echo ' '
 	@ echo 'Build finish: $(BIN)'
 
-redirect: redirect_setup all
+mutex: mutex_setup all
 
-pipe: pipe_setup all
+mutex_disable: mutex_disable_setup all
+
+$(CPP_BIN): $(OBJ_CPP)
+	@ echo "Test $(OBJ)"
+	@ echo "Test $(BIN)"
+	@ echo "Test $^"
+	$(CCPP) $^ -o $@ $(FLAGS)
 
 $(BIN): $(OBJ)
-	$(GCC) $^ -o $@ $(CC_FLAGS)
+	@ echo "Test $(OBJ)"
+	@ echo "Test $(BIN)"
+	@ echo "Test $^"
+	$(CC) $(OBJ) -o $@ $(FLAGS)
 
 $(OBJ_FOLDER)/%.o: $(SRC_FOLDER)/%.c $(SRC_FOLDER)/%.h
-	$(GCC) -c $< -o $@ $(CC_FLAGS)
+	$(CC) -c $< -o $@ $(C_FLAGS)
+
+$(OBJ_FOLDER)/%.o: $(SRC_FOLDER)/%.cpp $(SRC_FOLDER)/%.h
+	$(CCPP) -c $< -o $@ $(CPP_FLAGS)
 
 $(OBJ_FOLDER)/main.o: $(SRC_FOLDER)/main.c $(HEADERS)
-	$(GCC) -c $< -o $@ $(CC_FLAGS)
+	$(CC) -c $< -o $@ $(C_FLAGS)
+
+$(OBJ_FOLDER)/main2.o: $(SRC_FOLDER)/main2.cpp $(HEADERS)
+	$(CCPP) -c $< -o $@ $(CPP_FLAGS)
 
 $(ASSEMBLY_FOLDER)/%.s: $(SRC_FOLDER)/%.c $(SRC_FOLDER)/%.h
-	$(GCC) -c $< -o $@ $(CC_FLAGS)
+	$(CC) -c $< -o $@ $(C_FLAGS)
 
 $(ASSEMBLY_FOLDER)/main.s: $(SRC_FOLDER)/main.c $(HEADERS)
-	$(GCC) -c $< -o $@ $(CC_FLAGS)
+	$(CC) -c $< -o $@ $(C_FLAGS)
 
 assembly: assemblyFolder assembly_setup $(ASSEMBLY_FILES)
 
@@ -78,15 +101,15 @@ debug_setup:
 	$(eval DEBUG=-g3)
 
 assembly_setup:
-	$(eval CC_FLAGS=${CC_FLAGS} ${ASSEMBLER_FLAGS})
+	$(eval FLAGS=${FLAGS} ${ASSEMBLER_FLAGS})
 
 clean:
-	rm -f *~ $(BIN)
+	rm -f *~ $(BIN) $(CPP_BIN)
 	test -e $(OBJ_FOLDER) && rm -f $(OBJ_FOLDER)/*.o && rmdir $(OBJ_FOLDER) || true
 	test -e $(ASSEMBLY_FOLDER) && rm -f $(ASSEMBLY_FOLDER)/*.s && rmdir $(ASSEMBLY_FOLDER) || true
 
-pipe_setup:
-	$(eval DEFINES=-DPIPE)
+mutex_setup:
+	$(eval DEFINES=-DMUTEX_EXAMPLE)
 
-redirect_setup:
-	$(eval DEFINES=-DREDIRECT)
+mutex_disable_setup: mutex_setup
+	$(eval DEFINES=$(DEFINES) -DDISABLE_MUTEX)
