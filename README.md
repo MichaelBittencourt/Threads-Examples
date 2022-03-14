@@ -36,6 +36,23 @@ $ make mutex_disable
 $ ./prog
 ```
 
+## Test simple thread creation with CPP Threads
+
+```bash
+$ make cpp_thread
+$ ./prog
+```
+
+## Disable mutex in CPP Threads
+
+
+```bash
+$ make mutex_disable_setup cpp_thread
+$ ./prog
+```
+
+
+
 ## Cleaning
 
 ```bash
@@ -60,3 +77,4 @@ $ make assembly
 - [Source Examples](http://www.cs.loyola.edu/~jglenn/702/S2005/Examples/dup2.html)
 - [Posix threads Tutorial](https://www.geeksforgeeks.org/multithreading-c-2/)
 - [Full Posix Threads Tutorial](https://www.cs.cmu.edu/afs/cs/academic/class/15492-f07/www/pthreads.html)
+- [Threads C++](https://www.cplusplus.com/reference/thread/thread/)
